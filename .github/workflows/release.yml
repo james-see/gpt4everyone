@@ -170,6 +170,7 @@ jobs:
           target: 'desktop'
           arch: 'gcc_64'
           modules: 'qt5compat qthttpserver qtpdf qtshadertools qtwebsockets'
+          setup-python: false
 
       - name: Install dependencies
         run: |
