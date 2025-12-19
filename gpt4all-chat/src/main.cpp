@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setOrganizationName("james-see");
     QCoreApplication::setOrganizationDomain("github.com/james-see/gpt4everyone");
-    QCoreApplication::setApplicationName("GCP4ALL");
+    QCoreApplication::setApplicationName("GPT4Everyone");
     QCoreApplication::setApplicationVersion(APP_VERSION);
     QSettings::setDefaultFormat(QSettings::IniFormat);
 

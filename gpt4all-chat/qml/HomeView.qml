@@ -46,7 +46,7 @@ Rectangle {
                 Text {
                     id: welcome
                     Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Welcome to GPT4All")
+                    text: qsTr("Welcome to GPT4Everyone")
                     font.pixelSize: theme.fontSizeBannerLarge
                     color: theme.titleTextColor
                 }
@@ -188,7 +188,7 @@ Rectangle {
                                     focus: false
                                     Accessible.role: Accessible.Paragraph
                                     Accessible.name: qsTr("Latest news")
-                                    Accessible.description: qsTr("Latest news from GPT4All")
+                                    Accessible.description: qsTr("Latest news from GPT4Everyone")
                                     onLinkActivated: function(link) {
                                         Qt.openUrlExternally(link);
                                     }
@@ -254,7 +254,7 @@ Rectangle {
                     spacing: 40
 
                     MyFancyLink {
-                        text: qsTr("GCP4ALL")
+                        text: qsTr("GPT4Everyone")
                         imageSource: "qrc:/gpt4all/icons/globe.svg"
                         onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone") }
                         rightPadding: 15
@@ -279,7 +279,7 @@ Rectangle {
             MyFancyLink {
                 id: subscribeLink
                 Layout.alignment: Qt.AlignCenter
-                text: qsTr("GCP4ALL Documentation")
+                text: qsTr("GPT4Everyone Documentation")
                 imageSource: "qrc:/gpt4all/icons/email.svg"
                 onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone/wiki") }
             }

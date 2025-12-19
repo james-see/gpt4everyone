@@ -1,4 +1,4 @@
-name: Build and Release GCP4ALL
+name: Build and Release GPT4Everyone
 
 on:
   push:
@@ -104,16 +104,16 @@ jobs:
       - name: Package DMG
         run: |
           # Create a DMG manually using hdiutil
-          hdiutil create -volname "GCP4ALL" -srcfolder gpt4all-chat/build/bin/gpt4all.app -ov -format UDZO gpt4all-chat/build/gpt4all-installer-darwin.dmg
+          hdiutil create -volname "GPT4Everyone" -srcfolder gpt4all-chat/build/bin/gpt4all.app -ov -format UDZO gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
 
       - name: Sign DMG
         run: |
-          codesign --force --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/gpt4all-installer-darwin.dmg
+          codesign --force --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
 
       - name: Notarize DMG
         run: |
           # Submit for notarization and wait
-          xcrun notarytool submit gpt4all-chat/build/gpt4all-installer-darwin.dmg \
+          xcrun notarytool submit gpt4all-chat/build/gpt4everyone-installer-darwin.dmg \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
@@ -136,13 +136,262 @@ jobs:
 
       - name: Staple DMG
         run: |
-          xcrun stapler staple gpt4all-chat/build/gpt4all-installer-darwin.dmg
+          xcrun stapler staple gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt4everyone-installer-darwin
+          path: gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.8.0'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+          modules: 'qt5compat qthttpserver qtpdf qtshadertools qtwebsockets'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake python3-pip libvulkan-dev libxcb1-dev libxcb-cursor0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libxkbcommon-dev build-essential git
+          python3 -m pip install click
+          # Patch usearch dependency which has a typo breaking compilation on newer Clang
+          sed -i '3378s/index_->node_at_/index_.node_at_/' gpt4all-chat/deps/usearch/include/usearch/index.hpp
+
+      - name: Configure CMake
+        run: |
+          cd gpt4all-chat
+          mkdir build
+          cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DGPT4ALL_TEST=OFF
+
+      - name: Build
+        run: |
+          cd gpt4all-chat/build
+          ninja
+
+      - name: Install
+        run: |
+          cd gpt4all-chat/build
+          ninja install
+
+      - name: Install linuxdeployqt
+        run: |
+          # Build linuxdeployqt from source (required for Qt bundling)
+          git clone https://github.com/nomic-ai/linuxdeployqt.git /tmp/linuxdeployqt
+          cd /tmp/linuxdeployqt
+          # Find qmake from Qt installation (check PATH first, then common locations)
+          if command -v qmake &> /dev/null; then
+            QMAKE=qmake
+          else
+            QMAKE=$(find ~/Qt -name "qmake" -type f 2>/dev/null | grep -E "(6\.8|gcc_64)" | head -n 1)
+            if [ -z "$QMAKE" ]; then
+              QMAKE=$(find ~/Qt -name "qmake" -type f 2>/dev/null | head -n 1)
+            fi
+            if [ -z "$QMAKE" ]; then
+              QMAKE=$(find /opt/qt -name "qmake" -type f 2>/dev/null | head -n 1)
+            fi
+          fi
+          if [ -z "$QMAKE" ]; then
+            echo "Error: qmake not found. Searched PATH and common Qt locations."
+            exit 1
+          fi
+          # Verify qmake works (whether it's a path or command name)
+          if [ -f "$QMAKE" ]; then
+            if [ ! -x "$QMAKE" ]; then
+              echo "Error: qmake found but not executable: $QMAKE"
+              exit 1
+            fi
+          elif ! command -v "$QMAKE" &> /dev/null; then
+            echo "Error: qmake command not found: $QMAKE"
+            exit 1
+          fi
+          echo "Using qmake at: $QMAKE"
+          $QMAKE
+          make
+          sudo make install
+          linuxdeployqt --version
+
+      - name: Deploy Qt Dependencies
+        run: |
+          # Verify linuxdeployqt is available
+          if ! command -v linuxdeployqt &> /dev/null; then
+            echo "Error: linuxdeployqt not found in PATH"
+            exit 1
+          fi
+          echo "linuxdeployqt is available and will be used by CPack"
+          linuxdeployqt --version
+
+      - name: Install Qt Installer Framework
+        run: |
+          # Download and install Qt Installer Framework
+          wget -q https://download.qt.io/official_releases/qt-installer-framework/4.6/qt-installer-framework-opensource-linux-x64-4.6.run -O /tmp/qtifw.run
+          chmod +x /tmp/qtifw.run
+          # Extract to ~/Qt/Tools/QtInstallerFramework/4.6
+          mkdir -p ~/Qt/Tools/QtInstallerFramework/4.6
+          /tmp/qtifw.run --script /dev/null --accept-licenses --accept-messages --no-default-install-dir --root ~/Qt/Tools/QtInstallerFramework/4.6 || true
+          # Add to PATH
+          export PATH="$HOME/Qt/Tools/QtInstallerFramework/4.6/bin:$PATH"
+          echo "$HOME/Qt/Tools/QtInstallerFramework/4.6/bin" >> $GITHUB_PATH
+
+      - name: Package Linux Installer
+        run: |
+          cd gpt4all-chat/build
+          # Use CPack to create installer (IFW preferred, fallback to TGZ)
+          cpack -G IFW || cpack -G TGZ
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt4everyone-installer-linux
+          path: |
+            gpt4all-chat/build/*.run
+            gpt4all-chat/build/*.tar.gz
+          if-no-files-found: warn
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.8.0'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          modules: 'qt5compat qthttpserver qtpdf qtshadertools qtwebsockets'
+
+      - name: Install dependencies
+        run: |
+          choco install ninja cmake -y
+          python -m pip install click
+          # Patch usearch dependency which has a typo breaking compilation on newer Clang
+          (Get-Content gpt4all-chat/deps/usearch/include/usearch/index.hpp) -replace 'index_->node_at_', 'index_.node_at_' | Set-Content gpt4all-chat/deps/usearch/include/usearch/index.hpp
+
+      - name: Configure CMake
+        run: |
+          cd gpt4all-chat
+          mkdir build
+          cd build
+          cmake .. -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DGPT4ALL_TEST=OFF
+
+      - name: Build
+        run: |
+          cd gpt4all-chat/build
+          ninja
+
+      - name: Install
+        run: |
+          cd gpt4all-chat/build
+          ninja install
+
+      - name: Deploy Qt Dependencies
+        run: |
+          # Find windeployqt - it should be in the Qt bin directory
+          # install-qt-action typically installs to C:\Qt or similar
+          $QtPaths = @(
+            "C:\Qt\6.8.0\msvc2022_64\bin\windeployqt.exe",
+            "$env:ProgramFiles\Qt\6.8.0\msvc2022_64\bin\windeployqt.exe",
+            "$env:LOCALAPPDATA\Qt\6.8.0\msvc2022_64\bin\windeployqt.exe"
+          )
+          
+          $WINDEPLOYQT = $null
+          foreach ($path in $QtPaths) {
+            if (Test-Path $path) {
+              $WINDEPLOYQT = $path
+              break
+            }
+          }
+          
+          # Also try to find it via PATH or search
+          if (-not $WINDEPLOYQT) {
+            $found = Get-Command windeployqt.exe -ErrorAction SilentlyContinue
+            if ($found) {
+              $WINDEPLOYQT = $found.Source
+            }
+          }
+          
+          if ($WINDEPLOYQT) {
+            Write-Host "Found windeployqt at $WINDEPLOYQT"
+            & $WINDEPLOYQT --version
+          } else {
+            Write-Host "windeployqt not found in standard locations, CMake will locate it during CPack"
+            Write-Host "windeployqt will be run automatically by CPack via deploy-qt-windows.cmake.in"
+          }
+
+      - name: Install Qt Installer Framework
+        run: |
+          # Check if Qt IFW is available from Qt installation
+          $QtIFWPaths = @(
+            "C:\Qt\Tools\QtInstallerFramework\4.6",
+            "$env:ProgramFiles\Qt\Tools\QtInstallerFramework\4.6",
+            "$env:LOCALAPPDATA\Qt\Tools\QtInstallerFramework\4.6"
+          )
+          
+          $QtIFWPath = $null
+          foreach ($path in $QtIFWPaths) {
+            if (Test-Path $path) {
+              $QtIFWPath = $path
+              break
+            }
+          }
+          
+          if ($QtIFWPath) {
+            Write-Host "Qt IFW found at $QtIFWPath"
+            $env:PATH = "$QtIFWPath\bin;$env:PATH"
+          } else {
+            Write-Host "Qt IFW not found at default locations, CPack will try to use bundled tools"
+          }
+
+      - name: Package Windows Installer
+        run: |
+          cd gpt4all-chat/build
+          cpack -G IFW
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt4everyone-installer-windows
+          path: gpt4all-chat/build/*.exe
+          if-no-files-found: warn
+
+  create-release:
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Create GitHub Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: gpt4all-chat/build/*.dmg
+          files: |
+            artifacts/gpt4everyone-installer-darwin/*.dmg
+            artifacts/gpt4everyone-installer-linux/*.run
+            artifacts/gpt4everyone-installer-linux/*.tar.gz
+            artifacts/gpt4everyone-installer-windows/*.exe
           draft: false
           prerelease: false
         env:

@@ -83,7 +83,7 @@ Rectangle {
             implicitWidth: 600
             spacing: 10
             MyTabButton {
-                text: qsTr("GPT4All")
+                text: qsTr("GPT4Everyone")
                 isSelected: gpt4AllModelView.isShown()
                 onPressed: {
                     gpt4AllModelView.show();

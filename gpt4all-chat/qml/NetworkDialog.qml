@@ -36,7 +36,7 @@ MyDialog {
                 anchors.left: img.right
                 anchors.leftMargin: 30
                 anchors.verticalCenter: img.verticalCenter
-                text: qsTr("Contribute data to the GPT4All Opensource Datalake.")
+                text: qsTr("Contribute data to the GPT4Everyone Opensource Datalake.")
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
             }
@@ -54,16 +54,16 @@ MyDialog {
                 width: 1024 - 40
                 text: qsTr("By enabling this feature, you will be able to participate in the democratic process of "
                       + "training a large language model by contributing data for future model improvements.\n\n"
-                      + "When a GPT4All model responds to you and you have opted-in, your conversation will be sent to "
-                      + "the GPT4All Open Source Datalake. Additionally, you can like/dislike its response. If you "
+                      + "When a GPT4Everyone model responds to you and you have opted-in, your conversation will be sent to "
+                      + "the GPT4Everyone Open Source Datalake. Additionally, you can like/dislike its response. If you "
                       + "dislike a response, you can suggest an alternative response. This data will be collected and "
-                      + "aggregated in the GPT4All Datalake.\n\n"
-                      + "NOTE: By turning on this feature, you will be sending your data to the GPT4All Open Source "
+                      + "aggregated in the GPT4Everyone Datalake.\n\n"
+                      + "NOTE: By turning on this feature, you will be sending your data to the GPT4Everyone Open Source "
                       + "Datalake. You should have no expectation of chat privacy when this feature is enabled. You "
                       + "should; however, have an expectation of an optional attribution if you wish. Your chat data "
                       + "will be openly available for anyone to download and will be used by Nomic AI to improve "
-                      + "future GPT4All models. Nomic AI will retain all attribution information attached to your data "
-                      + "and you will be credited as a contributor to any GPT4All model release that uses your data!")
+                      + "future GPT4Everyone models. Nomic AI will retain all attribution information attached to your data "
+                      + "and you will be credited as a contributor to any GPT4Everyone model release that uses your data!")
                 focus: false
                 readOnly: true
                 Accessible.role: Accessible.Paragraph

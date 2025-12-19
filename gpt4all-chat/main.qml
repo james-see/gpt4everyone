@@ -21,7 +21,7 @@ Window {
     minimumWidth: 658 + 470 * theme.fontScale
     minimumHeight: 384 + 160 * theme.fontScale
     visible: true
-    title: qsTr("GPT4All v%1").arg(Qt.application.version)
+    title: qsTr("GPT4Everyone v%1").arg(Qt.application.version)
 
     SystemTrayIcon {
         id: systemTrayIcon

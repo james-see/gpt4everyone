@@ -170,10 +170,12 @@ void Download::updateReleaseNotes()
 
 void Download::updateLatestNews()
 {
-    QUrl url("http://gpt4all.io/meta/latestnews.md");
+    // Fetch latest release from GitHub Releases API
+    QUrl url("https://api.github.com/repos/james-see/gpt4everyone/releases/latest");
     QNetworkRequest request(url);
+    request.setRawHeader("Accept", "application/vnd.github.v3+json");
     QSslConfiguration conf = request.sslConfiguration();
-    conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+    conf.setPeerVerifyMode(QSslSocket::VerifyPeer);
     request.setSslConfiguration(conf);
     QNetworkReply *reply = m_networkManager.get(request);
     connect(qGuiApp, &QCoreApplication::aboutToQuit, reply, &QNetworkReply::abort);
@@ -419,11 +421,45 @@ void Download::handleLatestNewsDownloadFinished()
     if (reply->error() != QNetworkReply::NoError) {
         qWarning() << "ERROR: network error occurred attempting to download latest news:" << reply->errorString();
         reply->deleteLater();
+        // Fallback: set empty news on error
+        m_latestNews = "";
+        emit latestNewsChanged();
         return;
     }
 
     QByteArray responseData = reply->readAll();
-    m_latestNews = QString::fromUtf8(responseData);
+    
+    // Parse JSON response from GitHub API
+    QJsonParseError err;
+    QJsonDocument document = QJsonDocument::fromJson(responseData, &err);
+    if (err.error != QJsonParseError::NoError) {
+        qWarning() << "ERROR: Couldn't parse GitHub API response:" << err.errorString();
+        m_latestNews = "";
+        reply->deleteLater();
+        emit latestNewsChanged();
+        return;
+    }
+
+    QJsonObject obj = document.object();
+    
+    // Extract release body/notes from the JSON response
+    QString releaseBody = obj["body"].toString();
+    QString releaseName = obj["name"].toString();
+    QString releaseTag = obj["tag_name"].toString();
+    
+    // Format the news with release information
+    if (!releaseBody.isEmpty()) {
+        // Prepend release title if available
+        if (!releaseName.isEmpty() || !releaseTag.isEmpty()) {
+            QString title = !releaseName.isEmpty() ? releaseName : releaseTag;
+            m_latestNews = QString("## %1\n\n%2").arg(title, releaseBody);
+        } else {
+            m_latestNews = releaseBody;
+        }
+    } else {
+        m_latestNews = "";
+    }
+    
     reply->deleteLater();
     emit latestNewsChanged();
 }

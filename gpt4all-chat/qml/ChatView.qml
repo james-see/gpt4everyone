@@ -774,7 +774,7 @@ Rectangle {
                                 Layout.topMargin: 15
                                 horizontalAlignment: Qt.AlignHCenter
                                 color: theme.mutedLighterTextColor
-                                text: qsTr("GPT4All requires that you install at least one\nmodel to get started")
+                                text: qsTr("GPT4Everyone requires that you install at least one\nmodel to get started")
                                 font.pixelSize: theme.fontSizeLarge
                             }
                         }

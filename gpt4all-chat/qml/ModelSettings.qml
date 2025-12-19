@@ -189,7 +189,7 @@ MySettingsTab {
                 id: systemMessageLabel
                 text: qsTr("System Message")
                 helpText: qsTr("A message to set the context or guide the behavior of the model. Leave blank for " +
-                               "none. NOTE: Since GPT4All 3.5, this should not contain control tokens.")
+                               "none. NOTE: Since GPT4Everyone 3.5, this should not contain control tokens.")
                 onReset: () => resetSystemMessageDialog.show(root.currentModelId, resetClears)
                 function updateResetButton() {
                     const info = root.currentModelInfo;
@@ -944,7 +944,7 @@ MySettingsTab {
                 text: root.currentModelInfo.gpuLayers
                 font.pixelSize: theme.fontSizeLarge
                 color: theme.textColor
-                ToolTip.text: qsTr("How many model layers to load into VRAM. Decrease this if GPT4All runs out of VRAM while loading this model.\nLower values increase CPU load and RAM usage, and make inference slower.\nNOTE: Does not take effect until you reload the model.")
+                ToolTip.text: qsTr("How many model layers to load into VRAM. Decrease this if GPT4Everyone runs out of VRAM while loading this model.\nLower values increase CPU load and RAM usage, and make inference slower.\nNOTE: Does not take effect until you reload the model.")
                 ToolTip.visible: hovered
                 Layout.row: 4
                 Layout.column: 1
