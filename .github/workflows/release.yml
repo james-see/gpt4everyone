@@ -53,10 +53,24 @@ jobs:
           cd gpt4all-chat/build
           ninja
 
+      - name: Deploy Qt Dependencies
+        run: |
+          # Find macdeployqt in the Qt installation directory
+          QT_PATH=$(find /Users/runner/work/gpt4everyone/Qt -maxdepth 2 -name "6.*" -type d | head -n 1)
+          MACDEPLOYQT="${QT_PATH}/macos/bin/macdeployqt"
+          echo "Using macdeployqt at ${MACDEPLOYQT}"
+          
+          ${MACDEPLOYQT} gpt4all-chat/build/bin/gpt4all.app \
+            -qmldir=gpt4all-chat \
+            -verbose=2
+
       - name: Sign App Bundle
         run: |
-          # Sign all dylibs in Frameworks
-          find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+          # Sign all dylibs in Frameworks individually with hardened runtime and timestamp
+          # This is required for notarization
+          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks" ]; then
+            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+          fi
           
           # Sign all plugins if they exist
           if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
@@ -71,8 +85,8 @@ jobs:
 
       - name: Package DMG
         run: |
-          cd gpt4all-chat/build
-          cpack -G DragNDrop
+          # Create a DMG manually using hdiutil
+          hdiutil create -volname "GCP4ALL" -srcfolder gpt4all-chat/build/bin/gpt4all.app -ov -format UDZO gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Sign DMG
         run: |
