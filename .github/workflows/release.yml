@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install ninja cmake
+          python3 -m pip install click
           # Patch usearch dependency which has a typo breaking compilation on newer Clang
           sed -i '' '3378s/index_->node_at_/index_.node_at_/' gpt4all-chat/deps/usearch/include/usearch/index.hpp
 
@@ -59,23 +60,38 @@ jobs:
 
       - name: Sign DMG
         run: |
-          codesign --force --timestamp --options runtime --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/*.dmg
+          # Use the project's signing script to sign the app bundle inside the DMG
+          python3 gpt4all-chat/cmake/sign_dmg.py \
+            --input-dmg gpt4all-chat/build/*.dmg \
+            --output-dmg gpt4all-chat/build/gpt4all-installer-signed.dmg \
+            --signing-identity "${{ secrets.MAC_SIGNING_IDENTITY }}" \
+            --verify
+          
+          # Replace the original DMG with the signed one
+          mv gpt4all-chat/build/gpt4all-installer-signed.dmg gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Notarize DMG
         run: |
-          SUBMISSION_ID=$(xcrun notarytool submit gpt4all-chat/build/*.dmg \
+          # Submit for notarization and wait
+          xcrun notarytool submit gpt4all-chat/build/*.dmg \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
-            --wait | grep "id:" | head -n 1 | awk '{print $2}')
+            --wait > notarization_output.txt 2>&1
           
-          xcrun notarytool history --apple-id "${{ secrets.APPLE_ID }}" --password "${{ secrets.APPLE_PASSWORD }}" --team-id "${{ secrets.APPLE_TEAM_ID }}"
+          cat notarization_output.txt
           
-          if [ -n "$SUBMISSION_ID" ]; then
-            xcrun notarytool log $SUBMISSION_ID \
-              --apple-id "${{ secrets.APPLE_ID }}" \
-              --password "${{ secrets.APPLE_PASSWORD }}" \
-              --team-id "${{ secrets.APPLE_TEAM_ID }}" || true
+          SUBMISSION_ID=$(grep "id:" notarization_output.txt | head -n 1 | awk '{print $2}')
+          
+          if ! grep -q "status: Accepted" notarization_output.txt; then
+            echo "Notarization failed!"
+            if [ -n "$SUBMISSION_ID" ]; then
+              xcrun notarytool log $SUBMISSION_ID \
+                --apple-id "${{ secrets.APPLE_ID }}" \
+                --password "${{ secrets.APPLE_PASSWORD }}" \
+                --team-id "${{ secrets.APPLE_TEAM_ID }}"
+            fi
+            exit 1
           fi
 
       - name: Staple DMG
