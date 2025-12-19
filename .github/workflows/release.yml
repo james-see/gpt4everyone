@@ -35,28 +35,28 @@ jobs:
 
       - name: Configure CMake
         run: |
+          cd gpt4all-chat
           mkdir build
           cd build
           cmake .. -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DAPP_VERSION_PATCH=1 \
             -DGPT4ALL_SIGN_INSTALL=ON \
             -DMAC_SIGNING_IDENTITY="${{ secrets.MAC_SIGNING_IDENTITY }}" \
             -DMAC_SIGNING_TID="${{ secrets.APPLE_TEAM_ID }}"
 
       - name: Build
         run: |
-          cd build
+          cd gpt4all-chat/build
           ninja
 
       - name: Package DMG
         run: |
-          cd build
+          cd gpt4all-chat/build
           cpack -G DragNDrop
 
       - name: Notarize DMG
         run: |
-          xcrun notarytool submit build/*.dmg \
+          xcrun notarytool submit gpt4all-chat/build/*.dmg \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
@@ -64,13 +64,13 @@ jobs:
 
       - name: Staple DMG
         run: |
-          xcrun stapler staple build/*.dmg
+          xcrun stapler staple gpt4all-chat/build/*.dmg
 
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/*.dmg
+          files: gpt4all-chat/build/*.dmg
           draft: false
           prerelease: false
         env:
