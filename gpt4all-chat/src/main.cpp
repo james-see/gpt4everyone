@@ -147,21 +147,37 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty("fixedFont", fixedFont);
     }
 
+    QObject::connect(&engine, &QQmlApplicationEngine::warnings, [](const QList<QQmlError> &warnings) {
+        for (const auto &w : warnings) qWarning() << "QML Warning:" << w.toString();
+    });
+
     const QUrl url(u"qrc:/gpt4all/main.qml"_s);
 
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
         &app, [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
+            if (!obj && url == objUrl) {
+                qCritical() << "ERROR: Failed to create QML object for" << url;
                 QCoreApplication::exit(-1);
+            }
         }, Qt::QueuedConnection);
+
     engine.load(url);
+    if (engine.rootObjects().isEmpty()) {
+        qCritical() << "ERROR: No root objects created. QML failed to load from" << url;
+        // Print more info about what might be missing
+        qCritical() << "Check if all QML modules (Qt5Compat.GraphicalEffects, etc.) are installed.";
+        return -1;
+    }
 
     QObject *rootObject = engine.rootObjects().first();
     QQuickWindow *windowObject = qobject_cast<QQuickWindow *>(rootObject);
-    Q_ASSERT(windowObject);
-    if (windowObject)
-        QObject::connect(&app, &SingleApplication::receivedMessage,
-                         windowObject, [windowObject] () { raiseWindow(windowObject); } );
+    if (!windowObject) {
+        qCritical() << "ERROR: Root object is not a QQuickWindow";
+        return -1;
+    }
+
+    QObject::connect(&app, &SingleApplication::receivedMessage,
+                     windowObject, [windowObject] () { raiseWindow(windowObject); } );
 
 #if 0
     QDirIterator it("qrc:", QDirIterator::Subdirectories);

@@ -275,10 +275,12 @@
     "contributors": "* Jared Van Bortel (Nomic AI)\n* Adam Treat (Nomic AI)\n* ThiloteE (`@ThiloteE`)"
   },
   {
-    "version": "3.10.1",
-    "notes": "<b>&mdash; GCP4ALL Hard Fork &mdash;</b>\n* Transitioned maintenance to the GCP4ALL community hard fork led by james-see.\n* Updated project metadata and links to the new repository at https://github.com/james-see/gpt4everyone.\n* Initial setup for automated release pipelines for macOS.\n",
-    "contributors": "* James Campbell (james-see)\n* Jared Van Bortel (Nomic AI)\n* Adam Treat (Nomic AI)\n* Community (GCP4ALL contributors)"
+    "version": "3.10.2",
+    "notes": "<b>&mdash; GCP4ALL Fixes &mdash;</b>\n* Fixed macOS startup crash caused by missing QML dependencies.\n* Switched to official macdeployqt bundling for better stability on macOS.\n* Enhanced error handling and logging during application initialization.\n",
+    "contributors": "* James Campbell (james-see)\n* Community (GCP4ALL contributors)"
   },
+  {
+    "version": "3.10.1",
   {
     "version": "3.10.0",
     "notes": "* **Remote Models:**\n  * The Add Model page now has a dedicated tab for remote model providers.\n  * Groq, OpenAI, and Mistral remote models are now easier to configure.\n* **CUDA Compatibility:** GPUs with CUDA compute capability 5.0 such as the GTX 750 are now supported by the CUDA backend.\n* **New Model:** The non-MoE Granite model is now supported.\n* **Translation Updates:**\n  * The Italian translation has been updated.\n  * The Simplified Chinese translation has been significantly improved.\n* **Better Chat Templates:** The default chat templates for OLMoE 7B 0924/0125 and Granite 3.1 3B/8B have been improved.\n* **Whitespace Fixes:** DeepSeek-R1-based models now have better whitespace behavior in their output.\n* **Crash Fixes:** Several issues that could potentially cause GPT4All to crash have been fixed.\n",

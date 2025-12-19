@@ -53,48 +53,27 @@ jobs:
           cd gpt4all-chat/build
           ninja
 
-      - name: Deploy Qt Dependencies
+      - name: Deploy and Package DMG
         run: |
           # Find macdeployqt in the Qt installation directory
           QT_PATH=$(find /Users/runner/work/gpt4everyone/Qt -maxdepth 2 -name "6.*" -type d | head -n 1)
           MACDEPLOYQT="${QT_PATH}/macos/bin/macdeployqt"
           echo "Using macdeployqt at ${MACDEPLOYQT}"
           
+          # Run macdeployqt with -dmg to create the installer
+          # We also point it to the QML directory and include the backend dylibs
           ${MACDEPLOYQT} gpt4all-chat/build/bin/gpt4all.app \
             -qmldir=gpt4all-chat \
+            -executable=gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks/libllmodel.0.dylib \
+            -dmg \
             -verbose=2
 
-      - name: Sign App Bundle
-        run: |
-          # 1. Sign all frameworks and dylibs in Frameworks
-          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks" ]; then
-            echo "Signing components in Contents/Frameworks..."
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -mindepth 1 -maxdepth 1 | while read -r component; do
-              codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$component"
-            done
-          fi
-          
-          # 2. Sign all plugins
-          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
-            echo "Signing plugins in Contents/PlugIns..."
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
-          fi
-          
-          # 3. Sign the main executable
-          echo "Signing main executable..."
-          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app/Contents/MacOS/gpt4all
-          
-          # 4. Sign the app bundle itself
-          echo "Signing app bundle..."
-          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
-
-      - name: Package DMG
-        run: |
-          # Create a DMG manually using hdiutil
-          hdiutil create -volname "GCP4ALL" -srcfolder gpt4all-chat/build/bin/gpt4all.app -ov -format UDZO gpt4all-chat/build/gpt4all-installer-darwin.dmg
+          # macdeployqt creates gpt4all.dmg in the same directory as the .app
+          mv gpt4all-chat/build/bin/gpt4all.dmg gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Sign DMG
         run: |
+          # Re-sign the DMG created by macdeployqt to ensure it's using our identity and has a timestamp
           codesign --force --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Notarize DMG
