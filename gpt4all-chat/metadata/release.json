@@ -275,6 +275,11 @@
     "contributors": "* Jared Van Bortel (Nomic AI)\n* Adam Treat (Nomic AI)\n* ThiloteE (`@ThiloteE`)"
   },
   {
+    "version": "3.10.3",
+    "notes": "<b>&mdash; GCP4ALL Fixes &mdash;</b>\n* Further improved macOS code signing for nested frameworks.\n* Switched to official macdeployqt bundling for better stability on macOS.\n* Enhanced error handling during application initialization.\n",
+    "contributors": "* James Campbell (james-see)\n* Community (GCP4ALL contributors)"
+  },
+  {
     "version": "3.10.2",
     "notes": "<b>&mdash; GCP4ALL Fixes &mdash;</b>\n* Fixed macOS startup crash caused by missing QML dependencies.\n* Switched to official macdeployqt bundling for better stability on macOS.\n* Enhanced error handling and logging during application initialization.\n",
     "contributors": "* James Campbell (james-see)\n* Community (GCP4ALL contributors)"

@@ -68,23 +68,36 @@ jobs:
 
       - name: Sign App Bundle
         run: |
-          # 1. Sign all frameworks and dylibs recursively
-          echo "Signing all nested components..."
-          find gpt4all-chat/build/bin/gpt4all.app/Contents -type f \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) | while read -r component; do
+          # 1. Sign all frameworks (directories) first
+          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks" ]; then
+            echo "Signing frameworks..."
+            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.framework" -type d | while read -r framework; do
+              echo "Signing $framework"
+              codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$framework"
+            done
+          fi
+
+          # 2. Sign all dylibs and so files recursively
+          echo "Signing dylibs and shared objects..."
+          find gpt4all-chat/build/bin/gpt4all.app/Contents -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r component; do
+            echo "Signing $component"
             codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$component"
           done
           
-          # 2. Sign all plugins
+          # 3. Sign all plugins
           if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
             echo "Signing plugins..."
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -type f -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+            find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -type f | while read -r plugin; do
+              echo "Signing $plugin"
+              codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$plugin"
+            done
           fi
           
-          # 3. Sign the main executable
+          # 4. Sign the main executable
           echo "Signing main executable..."
           codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app/Contents/MacOS/gpt4all
           
-          # 4. Sign the app bundle itself
+          # 5. Sign the app bundle itself
           echo "Signing app bundle..."
           codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
 
