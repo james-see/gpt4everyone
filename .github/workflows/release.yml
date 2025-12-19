@@ -56,13 +56,26 @@ jobs:
           cd gpt4all-chat/build
           cpack -G DragNDrop
 
+      - name: Sign DMG
+        run: |
+          codesign --force --timestamp --options runtime --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/*.dmg
+
       - name: Notarize DMG
         run: |
-          xcrun notarytool submit gpt4all-chat/build/*.dmg \
+          SUBMISSION_ID=$(xcrun notarytool submit gpt4all-chat/build/*.dmg \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
-            --wait
+            --wait | grep "id:" | head -n 1 | awk '{print $2}')
+          
+          xcrun notarytool history --apple-id "${{ secrets.APPLE_ID }}" --password "${{ secrets.APPLE_PASSWORD }}" --team-id "${{ secrets.APPLE_TEAM_ID }}"
+          
+          if [ -n "$SUBMISSION_ID" ]; then
+            xcrun notarytool log $SUBMISSION_ID \
+              --apple-id "${{ secrets.APPLE_ID }}" \
+              --password "${{ secrets.APPLE_PASSWORD }}" \
+              --team-id "${{ secrets.APPLE_TEAM_ID }}" || true
+          fi
 
       - name: Staple DMG
         run: |
