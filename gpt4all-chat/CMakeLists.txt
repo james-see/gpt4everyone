@@ -179,7 +179,7 @@ set(CHAT_EXE_RESOURCES)
 
 # Metal shader library
 if (APPLE)
-    list(APPEND CHAT_EXE_RESOURCES "${GGML_METALLIB}")
+    # list(APPEND CHAT_EXE_RESOURCES "${GGML_METALLIB}")
 endif()
 
 # App icon
@@ -408,7 +408,7 @@ if (APPLE)
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         OUTPUT_NAME gpt4all
     )
-    add_dependencies(chat ggml-metal)
+    # add_dependencies(chat ggml-metal)
 endif()
 
 if (APPLE AND GPT4ALL_SIGN_INSTALL)
