@@ -55,7 +55,19 @@ jobs:
 
       - name: Sign App Bundle
         run: |
-          codesign --force --deep --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
+          # Sign all dylibs in Frameworks
+          find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+          
+          # Sign all plugins if they exist
+          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
+            find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+          fi
+          
+          # Sign the main executable
+          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app/Contents/MacOS/gpt4all
+          
+          # Sign the app bundle itself
+          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
 
       - name: Package DMG
         run: |
