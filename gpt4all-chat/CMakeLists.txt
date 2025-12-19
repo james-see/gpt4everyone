@@ -4,7 +4,7 @@ include(../common/common.cmake)
 
 set(APP_VERSION_MAJOR 3)
 set(APP_VERSION_MINOR 10)
-set(APP_VERSION_PATCH 3)
+set(APP_VERSION_PATCH 4)
 set(APP_VERSION_BASE "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}")
 set(APP_VERSION "${APP_VERSION_BASE}")
 
@@ -93,7 +93,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ON)
-set(GPT4ALL_QT_COMPONENTS Core Core5Compat HttpServer LinguistTools Quick QuickDialogs2 Sql Svg)
+set(GPT4ALL_QT_COMPONENTS Core Core5Compat HttpServer LinguistTools Quick QuickDialogs2 ShaderTools Sql Svg)
 set(GPT4ALL_USING_QTPDF OFF)
 if (CMAKE_SYSTEM_NAME MATCHES Windows AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|AARCH64|arm64|ARM64)$")
     # QtPDF is not available.
