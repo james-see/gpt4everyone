@@ -66,21 +66,26 @@ jobs:
 
       - name: Sign App Bundle
         run: |
-          # Sign all dylibs in Frameworks individually with hardened runtime and timestamp
-          # This is required for notarization
+          # 1. Sign all frameworks and dylibs in Frameworks
           if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks" ]; then
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
+            echo "Signing components in Contents/Frameworks..."
+            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -mindepth 1 -maxdepth 1 | while read -r component; do
+              codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$component"
+            done
           fi
           
-          # Sign all plugins if they exist
+          # 2. Sign all plugins
           if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
+            echo "Signing plugins in Contents/PlugIns..."
             find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -name "*.dylib" -exec codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" {} \;
           fi
           
-          # Sign the main executable
+          # 3. Sign the main executable
+          echo "Signing main executable..."
           codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app/Contents/MacOS/gpt4all
           
-          # Sign the app bundle itself
+          # 4. Sign the app bundle itself
+          echo "Signing app bundle..."
           codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
 
       - name: Package DMG
