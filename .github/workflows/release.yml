@@ -42,6 +42,7 @@ jobs:
           cd build
           cmake .. -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DGPT4ALL_TEST=OFF \
             -DGPT4ALL_SIGN_INSTALL=ON \
             -DMAC_SIGNING_IDENTITY="${{ secrets.MAC_SIGNING_IDENTITY }}" \
             -DMAC_SIGNING_TID="${{ secrets.APPLE_TEAM_ID }}"
