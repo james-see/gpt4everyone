@@ -21,7 +21,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qt5compat qthttpserver qtpdf'
+          modules: 'qt5compat qthttpserver qtpdf qtwebsockets'
 
       - name: Install dependencies
         run: |
