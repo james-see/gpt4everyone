@@ -20,7 +20,7 @@ jobs:
           version: '6.8.0'
           host: 'mac'
           target: 'desktop'
-          arch: 'macos'
+          arch: 'clang_64'
           modules: 'qt5compat qthttpserver qtpdf'
 
       - name: Install dependencies
