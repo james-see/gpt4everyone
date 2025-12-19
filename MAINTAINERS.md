@@ -19,10 +19,13 @@ Maintainers will be...
 
 ## List
 
+James Campbell ([@james-see](https://github.com/james-see))<br/>
+- Primary Maintainer & Project Lead (GCP4ALL Hard Fork)
+
 Adam Treat ([@manyoso](https://github.com/manyoso))<br/>
 E-mail: adam@nomic.ai<br/>
 Discord: `@gonzochess75`
-- Overall project maintainer
+- Original Project Maintainer
 - Chat UI
 
 Jared Van Bortel ([@cebtenzzre](https://github.com/cebtenzzre))<br/>

@@ -221,13 +221,13 @@ Rectangle {
                     MyFancyLink {
                         text: qsTr("Release Notes")
                         imageSource: "qrc:/gpt4all/icons/notes.svg"
-                        onClicked: { Qt.openUrlExternally("https://github.com/nomic-ai/gpt4all/releases") }
+                        onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone/releases") }
                     }
 
                     MyFancyLink {
                         text: qsTr("Documentation")
                         imageSource: "qrc:/gpt4all/icons/info.svg"
-                        onClicked: { Qt.openUrlExternally("https://docs.gpt4all.io/") }
+                        onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone/wiki") }
                     }
 
                     MyFancyLink {
@@ -245,7 +245,7 @@ Rectangle {
                     MyFancyLink {
                         text: qsTr("Github")
                         imageSource: "qrc:/gpt4all/icons/github.svg"
-                        onClicked: { Qt.openUrlExternally("https://github.com/nomic-ai/gpt4all") }
+                        onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone") }
                     }
                 }
 
@@ -254,9 +254,9 @@ Rectangle {
                     spacing: 40
 
                     MyFancyLink {
-                        text: qsTr("nomic.ai")
+                        text: qsTr("GCP4ALL")
                         imageSource: "qrc:/gpt4all/icons/globe.svg"
-                        onClicked: { Qt.openUrlExternally("https://www.nomic.ai/gpt4all") }
+                        onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone") }
                         rightPadding: 15
                     }
                 }
@@ -279,9 +279,9 @@ Rectangle {
             MyFancyLink {
                 id: subscribeLink
                 Layout.alignment: Qt.AlignCenter
-                text: qsTr("Subscribe to Newsletter")
+                text: qsTr("GCP4ALL Documentation")
                 imageSource: "qrc:/gpt4all/icons/email.svg"
-                onClicked: { Qt.openUrlExternally("https://nomic.ai/gpt4all/#newsletter-form") }
+                onClicked: { Qt.openUrlExternally("https://github.com/james-see/gpt4everyone/wiki") }
             }
         }
     }

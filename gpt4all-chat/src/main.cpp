@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
     FPDF_InitLibrary();
 #endif
 
-    QCoreApplication::setOrganizationName("nomic.ai");
-    QCoreApplication::setOrganizationDomain("gpt4all.io");
-    QCoreApplication::setApplicationName("GPT4All");
+    QCoreApplication::setOrganizationName("james-see");
+    QCoreApplication::setOrganizationDomain("github.com/james-see/gpt4everyone");
+    QCoreApplication::setApplicationName("GCP4ALL");
     QCoreApplication::setApplicationVersion(APP_VERSION);
     QSettings::setDefaultFormat(QSettings::IniFormat);
 

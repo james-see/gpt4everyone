@@ -1,0 +1,77 @@
+name: Build and Release GCP4ALL
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.8.0'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'macos'
+          modules: 'qt5compat qthttpserver qtpdf'
+
+      - name: Install dependencies
+        run: |
+          brew install ninja cmake
+
+      - name: Import Code Signing Certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DAPP_VERSION_PATCH=1 \
+            -DGPT4ALL_SIGN_INSTALL=ON \
+            -DMAC_SIGNING_IDENTITY="${{ secrets.MAC_SIGNING_IDENTITY }}" \
+            -DMAC_SIGNING_TID="${{ secrets.APPLE_TEAM_ID }}"
+
+      - name: Build
+        run: |
+          cd build
+          ninja
+
+      - name: Package DMG
+        run: |
+          cd build
+          cpack -G DragNDrop
+
+      - name: Notarize DMG
+        run: |
+          xcrun notarytool submit build/*.dmg \
+            --apple-id "${{ secrets.APPLE_ID }}" \
+            --password "${{ secrets.APPLE_PASSWORD }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --wait
+
+      - name: Staple DMG
+        run: |
+          xcrun stapler staple build/*.dmg
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*.dmg
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

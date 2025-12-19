@@ -549,7 +549,7 @@ Window {
                     fillMode: Image.PreserveAspectFit
                     mipmap: true
                     visible: false
-                    source: "qrc:/gpt4all/icons/nomic_logo.svg"
+                    source: "qrc:/gpt4all/icons/gpt4all.svg"
                 }
 
                 ColorOverlay {
@@ -558,7 +558,7 @@ Window {
                     color: image.hovered ? theme.mutedDarkTextColorHovered : theme.mutedDarkTextColor
                     TapHandler {
                         onTapped: function(eventPoint, button) {
-                            Qt.openUrlExternally("https://nomic.ai")
+                            Qt.openUrlExternally("https://github.com/james-see/gpt4everyone")
                         }
                     }
                 }
