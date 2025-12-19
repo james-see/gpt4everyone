@@ -26,6 +26,8 @@ jobs:
       - name: Install dependencies
         run: |
           brew install ninja cmake
+          # Patch usearch dependency which has a typo breaking compilation on newer Clang
+          sed -i '' '3378s/index_->node_at_/index_.node_at_/' gpt4all-chat/deps/usearch/include/usearch/index.hpp
 
       - name: Import Code Signing Certificate
         uses: apple-actions/import-codesign-certs@v2
