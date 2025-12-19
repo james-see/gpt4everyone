@@ -53,6 +53,10 @@ jobs:
           cd gpt4all-chat/build
           ninja
 
+      - name: Sign App Bundle
+        run: |
+          codesign --force --deep --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
+
       - name: Package DMG
         run: |
           cd gpt4all-chat/build
@@ -60,20 +64,12 @@ jobs:
 
       - name: Sign DMG
         run: |
-          # Use the project's signing script to sign the app bundle inside the DMG
-          python3 gpt4all-chat/cmake/sign_dmg.py \
-            --input-dmg gpt4all-chat/build/*.dmg \
-            --output-dmg gpt4all-chat/build/gpt4all-installer-signed.dmg \
-            --signing-identity "${{ secrets.MAC_SIGNING_IDENTITY }}" \
-            --verify
-          
-          # Replace the original DMG with the signed one
-          mv gpt4all-chat/build/gpt4all-installer-signed.dmg gpt4all-chat/build/gpt4all-installer-darwin.dmg
+          codesign --force --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Notarize DMG
         run: |
           # Submit for notarization and wait
-          xcrun notarytool submit gpt4all-chat/build/*.dmg \
+          xcrun notarytool submit gpt4all-chat/build/gpt4all-installer-darwin.dmg \
             --apple-id "${{ secrets.APPLE_ID }}" \
             --password "${{ secrets.APPLE_PASSWORD }}" \
             --team-id "${{ secrets.APPLE_TEAM_ID }}" \
@@ -96,7 +92,7 @@ jobs:
 
       - name: Staple DMG
         run: |
-          xcrun stapler staple gpt4all-chat/build/*.dmg
+          xcrun stapler staple gpt4all-chat/build/gpt4all-installer-darwin.dmg
 
       - name: Create GitHub Release
         id: create_release
