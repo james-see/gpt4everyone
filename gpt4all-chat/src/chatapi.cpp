@@ -32,7 +32,8 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-//#define DEBUG
+// Set to false to disable verbose API request/response logging
+static const bool ChatAPI_VERBOSE_LOG = false;
 
 
 ChatAPI::ChatAPI()
@@ -166,6 +167,8 @@ void ChatAPI::prompt(
     if (!promptCtx.n_predict)
         return; // nothing requested
 
+    qDebug().noquote() << "ChatAPI::prompt posting to" << m_requestURL << "model:" << m_modelName;
+
     // FIXME: We don't set the max_tokens on purpose because in order to do so safely without encountering
     // an error we need to be able to count the tokens in our prompt. The only way to do this is to use
     // the OpenAI tiktoken library or to implement our own tokenization function that matches precisely
@@ -193,9 +196,8 @@ void ChatAPI::prompt(
 
     QJsonDocument doc(root);
 
-#if defined(DEBUG)
-    qDebug().noquote() << "ChatAPI::prompt begin network request" << doc.toJson();
-#endif
+    if (ChatAPI_VERBOSE_LOG)
+        qDebug().noquote() << "ChatAPI request body:\n" << doc.toJson(QJsonDocument::Indented);
 
     m_responseCallback = responseCallback;
 
@@ -212,9 +214,8 @@ void ChatAPI::prompt(
 
     m_responseCallback = nullptr;
 
-#if defined(DEBUG)
-    qDebug() << "ChatAPI::prompt end network request";
-#endif
+    if (ChatAPI_VERBOSE_LOG)
+        qDebug() << "ChatAPI::prompt request sent, waiting for response";
 }
 
 bool ChatAPI::callResponse(int32_t token, const std::string& string)
@@ -234,11 +235,9 @@ void ChatAPIWorker::request(const QString &apiKey, const QByteArray &array)
     QNetworkRequest request(apiUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", authorization.toUtf8());
-#if defined(DEBUG)
-    qDebug() << "ChatAPI::request"
-             << "API URL: " << apiUrl.toString()
-             << "Authorization: " << authorization.toUtf8();
-#endif
+    if (ChatAPI_VERBOSE_LOG)
+        qDebug().noquote() << "ChatAPI request URL:" << apiUrl.toString() << "body:" << array;
+
     m_networkManager = new QNetworkAccessManager(this);
     QNetworkReply *reply = m_networkManager->post(request, array);
     connect(qGuiApp, &QCoreApplication::aboutToQuit, reply, &QNetworkReply::abort);
@@ -280,6 +279,8 @@ void ChatAPIWorker::handleFinished()
             );
         qWarning().noquote() << "ERROR: ChatAPIWorker::handleFinished got HTTP Error" << code << "response:"
                              << reply->errorString();
+    } else if (ChatAPI_VERBOSE_LOG) {
+        qDebug().noquote() << "ChatAPI full response:\n" << m_currentResponse;
     }
     reply->deleteLater();
     emit finished();
@@ -319,9 +320,9 @@ void ChatAPIWorker::handleReadyRead()
             continue;
         if (jsonData == "[DONE]")
             continue;
-#if defined(DEBUG)
-        qDebug().noquote() << "line" << jsonData;
-#endif
+        if (ChatAPI_VERBOSE_LOG)
+            qDebug().noquote() << "ChatAPI SSE chunk:" << jsonData;
+
         QJsonParseError err;
         const QJsonDocument document = QJsonDocument::fromJson(jsonData.toUtf8(), &err);
         if (err.error != QJsonParseError::NoError) {

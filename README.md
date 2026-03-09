@@ -1,136 +1,72 @@
-<h1 align="center">GPT4All</h1>
+# GPT4Everyone
 
-<p align="center">
-  Now with support for DeepSeek R1 Distillations
-</p>
+Desktop chat app for running and chatting with large language models (LLMs) locally or via OpenAI-compatible APIs. Built on [GPT4All](https://github.com/nomic-ai/gpt4all).
 
-<p align="center">
-  <a href="https://www.nomic.ai/gpt4all">Website</a> &bull; <a href="https://docs.gpt4all.io">Documentation</a> &bull; <a href="https://discord.gg/mGZE39AS3e">Discord</a> &bull; <a href="https://www.youtube.com/watch?v=gQcZDXRVJok">YouTube Tutorial</a>
-</p>
+## Downloads
 
-<p align="center">
-  GPT4All runs large language models (LLMs) privately on everyday desktops & laptops.
-</p>
-<p align="center">
-  No API calls or GPUs required - you can just download the application and <a href="https://docs.gpt4all.io/gpt4all_desktop/quickstart.html#quickstart">get started</a>.
-</p>
+Installers are published on [GitHub Releases](https://github.com/james-see/gpt4everyone/releases). Download the latest for your OS:
 
-<p align="center">
-  Read about what's new in <a href="https://www.nomic.ai/blog/tag/gpt4all">our blog</a>.
-</p>
-<p align="center">
-  <a href="https://nomic.ai/gpt4all/#newsletter-form">Subscribe to the newsletter</a>
-</p>
+- **macOS** — `gpt4everyone-installer-darwin.dmg` (Monterey 12.6+, Apple Silicon or Intel)
+- **Windows** — `gpt4everyone-installer-win64.exe` (or ARM64 build if available)
+- **Linux** — `gpt4everyone-installer-linux.run` or `.tar.gz` (x86-64)
 
-https://github.com/nomic-ai/gpt4all/assets/70534565/513a0f15-4964-4109-89e4-4f9a9011f311
+Drag the app to **Applications** (macOS) or run the installer (Windows/Linux). No extra path setup required.
 
-<p align="center">
-GPT4All is made possible by our compute partner <a href="https://www.paperspace.com/">Paperspace</a>.
-</p>
+## Using Ollama with GPT4Everyone
 
-## Download Links
+You can use [Ollama](https://ollama.com) (local or cloud) as the model backend so you don’t have to download GGUF files in the app.
 
-<p>
-  &mdash; <a href="https://gpt4all.io/installers/gpt4all-installer-win64.exe">
-    <img src="gpt4all-bindings/python/docs/assets/windows.png" style="height: 1em; width: auto" /> Windows Installer
-  </a> &mdash;
-</p>
-<p>
-  &mdash; <a href="https://gpt4all.io/installers/gpt4all-installer-win64-arm.exe">
-    <img src="gpt4all-bindings/python/docs/assets/windows.png" style="height: 1em; width: auto" /> Windows ARM Installer
-  </a> &mdash;
-</p>
-<p>
-  &mdash; <a href="https://gpt4all.io/installers/gpt4all-installer-darwin.dmg">
-    <img src="gpt4all-bindings/python/docs/assets/mac.png" style="height: 1em; width: auto" /> macOS Installer
-  </a> &mdash;
-</p>
-<p>
-  &mdash; <a href="https://gpt4all.io/installers/gpt4all-installer-linux.run">
-    <img src="gpt4all-bindings/python/docs/assets/ubuntu.svg" style="height: 1em; width: auto" /> Ubuntu Installer
-  </a> &mdash;
-</p>
-<p>
-  The Windows and Linux builds require Intel Core i3 2nd Gen / AMD Bulldozer, or better.
-</p>
-<p>
-  The Windows ARM build supports Qualcomm Snapdragon and Microsoft SQ1/SQ2 processors.
-</p>
-<p>
-  The Linux build is x86-64 only (no ARM).
-</p>
-<p>
-  The macOS build requires Monterey 12.6 or newer. Best results with Apple Silicon M-series processors.
-</p>
+### 1. Get an API key (recommended)
 
-See the full [System Requirements](gpt4all-chat/system_requirements.md) for more details.
+- For **Ollama Cloud**: sign up at [ollama.com/signup](https://ollama.com/signup) and create a free API key under [Settings → Keys](https://ollama.com/settings/keys).
+- For **local Ollama only**: you can leave the API key blank; the app will talk to `http://localhost:11434` without authentication.
 
-<br/>
-<br/>
-<p>
-  <a href='https://flathub.org/apps/io.gpt4all.gpt4all'>
-    <img style="height: 2em; width: auto" alt='Get it on Flathub' src='https://flathub.org/api/badge'><br/>
-    Flathub (community maintained)
-  </a>
-</p>
+Using a free Ollama API key is recommended so the app can work with both local and cloud models.
 
-## Install GPT4All Python
-
-`gpt4all` gives you access to LLMs with our Python client around [`llama.cpp`](https://github.com/ggerganov/llama.cpp) implementations. 
-
-Nomic contributes to open source software like [`llama.cpp`](https://github.com/ggerganov/llama.cpp) to make LLMs accessible and efficient **for all**.
+### 2. Install and run Ollama (local use)
 
 ```bash
-pip install gpt4all
+# macOS / Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Then pull a model, e.g.:
+ollama pull llama3.2
+ollama pull glm-4-flash
 ```
 
-```python
-from gpt4all import GPT4All
-model = GPT4All("Meta-Llama-3-8B-Instruct.Q4_0.gguf") # downloads / loads a 4.66GB LLM
-with model.chat_session():
-    print(model.generate("How can I run LLMs efficiently on my laptop?", max_tokens=1024))
-```
+Keep Ollama running in the background (or start it before opening GPT4Everyone).
 
+### 3. Add Ollama as a remote in GPT4Everyone
 
-## Integrations
+1. Open **GPT4Everyone** → **Settings** (gear) → **Models**.
+2. Go to the **Remote** (or **Add Model** → Remote) section.
+3. Add a **Custom** remote:
+   - **Base URL**: `http://localhost:11434/v1` (local) or your Ollama Cloud endpoint if using cloud.
+   - **API key**: your [Ollama API key](https://ollama.com/settings/keys), or leave blank for local only.
+4. Save; the model list should refresh. Select the model you pulled (e.g. `llama3.2`, `glm-4-flash`) and start a chat.
 
-:parrot::link: [Langchain](https://python.langchain.com/v0.2/docs/integrations/providers/gpt4all/)
-:card_file_box: [Weaviate Vector Database](https://github.com/weaviate/weaviate) - [module docs](https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-gpt4all)
-:telescope: [OpenLIT (OTel-native Monitoring)](https://github.com/openlit/openlit) - [Docs](https://docs.openlit.io/latest/integrations/gpt4all)
+### Example (local Ollama)
 
-## Release History
-- **July 2nd, 2024**: V3.0.0 Release
-    - Fresh redesign of the chat application UI
-    - Improved user workflow for LocalDocs
-    - Expanded access to more model architectures
-- **October 19th, 2023**: GGUF Support Launches with Support for:
-    - Mistral 7b base model, an updated model gallery on our website, several new local code models including Rift Coder v1.5
-    - [Nomic Vulkan](https://blog.nomic.ai/posts/gpt4all-gpu-inference-with-vulkan) support for Q4\_0 and Q4\_1 quantizations in GGUF.
-    - Offline build support for running old versions of the GPT4All Local LLM Chat Client.
-- **September 18th, 2023**: [Nomic Vulkan](https://blog.nomic.ai/posts/gpt4all-gpu-inference-with-vulkan) launches supporting local LLM inference on NVIDIA and AMD GPUs.
-- **July 2023**: Stable support for LocalDocs, a feature that allows you to privately and locally chat with your data.
-- **June 28th, 2023**: [Docker-based API server] launches allowing inference of local LLMs from an OpenAI-compatible HTTP endpoint.
+- Base URL: `http://localhost:11434/v1`
+- API key: *(leave empty for local)*
+- Model: `llama3.2` or any model you’ve run `ollama pull <name>` for.
 
-[Docker-based API server]: https://github.com/nomic-ai/gpt4all/tree/cef74c2be20f5b697055d5b8b506861c7b997fab/gpt4all-api
+## Local models and LocalDocs
 
-## Contributing
-GPT4All welcomes contributions, involvement, and discussion from the open source community!
-Please see CONTRIBUTING.md and follow the issues, bug reports, and PR markdown templates.
+GPT4Everyone also runs **local** GGUF models (download from the in-app model list or install your own) and supports **LocalDocs** (chat over your documents with embeddings). See in-app settings for model path and LocalDocs collections.
 
-Check project discord, with project owners, or through existing issues/PRs to avoid duplicate work.
-Please make sure to tag all of the above with relevant project identifiers or your contribution could potentially get lost.
-Example tags: `backend`, `bindings`, `python-bindings`, `documentation`, etc.
+## System requirements
 
-## Citation
+- **macOS**: Monterey 12.6 or newer (Apple Silicon or Intel).
+- **Windows**: Intel Core i3 2nd Gen / AMD Bulldozer or better; ARM64 build for Snapdragon/SQ.
+- **Linux**: x86-64; see [gpt4all-chat/system_requirements.md](gpt4all-chat/system_requirements.md) for details.
 
-If you utilize this repository, models or data in a downstream project, please consider citing it with:
-```
-@misc{gpt4all,
-  author = {Yuvanesh Anand and Zach Nussbaum and Brandon Duderstadt and Benjamin Schmidt and Andriy Mulyar},
-  title = {GPT4All: Training an Assistant-style Chatbot with Large Scale Data Distillation from GPT-3.5-Turbo},
-  year = {2023},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/nomic-ai/gpt4all}},
-}
-```
+## Changelog
+
+See [gpt4all-chat/CHANGELOG.md](gpt4all-chat/CHANGELOG.md) for version history. Recent highlights:
+
+- **v1.0.0** — First GPT4Everyone release: rebranded app (GPT4Everyone.app), macOS/Windows/Linux installers via GitHub Actions, Ollama/custom remote support, LocalDocs fixes and embedding error handling.
+
+## License and attribution
+
+GPT4Everyone is a fork of [GPT4All](https://github.com/nomic-ai/gpt4all) by Nomic. See repository and [GPT4All documentation](https://docs.gpt4all.io) for upstream features and licensing.

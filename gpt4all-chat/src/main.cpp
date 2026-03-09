@@ -14,6 +14,7 @@
 
 #include <QByteArray>
 #include <QCoreApplication>
+#include <QDir>
 #include <QFont>
 #include <QFontDatabase>
 #include <QList>
@@ -104,12 +105,18 @@ int main(int argc, char *argv[])
     // set search path before constructing the MySettings instance, which relies on this
     {
         auto appDirPath = QCoreApplication::applicationDirPath();
-        QStringList searchPaths {
+        QDir appDir(appDirPath);
+        QStringList searchPaths{
 #ifdef Q_OS_DARWIN
-            u"%1/../Frameworks"_s.arg(appDirPath),
+            // Resolve to absolute paths so they work regardless of CWD. bin (next to .app) has the dylibs in dev builds.
+            appDir.absoluteFilePath(u"../../.."_s),
+            appDir.absoluteFilePath(u"../Frameworks"_s),
+            appDir.absoluteFilePath(u"../../../../llmodel/bin"_s),
+            appDir.absoluteFilePath(u"../../../../llmodel"_s),
+            appDirPath,
 #else
             appDirPath,
-            u"%1/../lib"_s.arg(appDirPath),
+            appDir.absoluteFilePath(u"../lib"_s),
 #endif
         };
         LLModel::Implementation::setImplementationsSearchPath(searchPaths.join(u';').toStdString());

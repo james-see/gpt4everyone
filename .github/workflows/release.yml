@@ -61,17 +61,17 @@ jobs:
           echo "Using macdeployqt at ${MACDEPLOYQT}"
           
           # Run macdeployqt to bundle dependencies (without -dmg yet)
-          ${MACDEPLOYQT} gpt4all-chat/build/bin/gpt4all.app \
+          ${MACDEPLOYQT} gpt4all-chat/build/bin/GPT4Everyone.app \
             -qmldir=gpt4all-chat \
-            -executable=gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks/libllmodel.0.dylib \
+            -executable=gpt4all-chat/build/bin/GPT4Everyone.app/Contents/Frameworks/libllmodel.0.dylib \
             -verbose=2
 
       - name: Sign App Bundle
         run: |
           # 1. Sign all frameworks (directories) first
-          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks" ]; then
+          if [ -d "gpt4all-chat/build/bin/GPT4Everyone.app/Contents/Frameworks" ]; then
             echo "Signing frameworks..."
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/Frameworks -name "*.framework" -type d | while read -r framework; do
+            find gpt4all-chat/build/bin/GPT4Everyone.app/Contents/Frameworks -name "*.framework" -type d | while read -r framework; do
               echo "Signing $framework"
               codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$framework"
             done
@@ -79,15 +79,15 @@ jobs:
 
           # 2. Sign all dylibs and so files recursively
           echo "Signing dylibs and shared objects..."
-          find gpt4all-chat/build/bin/gpt4all.app/Contents -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r component; do
+          find gpt4all-chat/build/bin/GPT4Everyone.app/Contents -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r component; do
             echo "Signing $component"
             codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$component"
           done
           
           # 3. Sign all plugins
-          if [ -d "gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns" ]; then
+          if [ -d "gpt4all-chat/build/bin/GPT4Everyone.app/Contents/PlugIns" ]; then
             echo "Signing plugins..."
-            find gpt4all-chat/build/bin/gpt4all.app/Contents/PlugIns -type f | while read -r plugin; do
+            find gpt4all-chat/build/bin/GPT4Everyone.app/Contents/PlugIns -type f | while read -r plugin; do
               echo "Signing $plugin"
               codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" "$plugin"
             done
@@ -95,16 +95,16 @@ jobs:
           
           # 4. Sign the main executable
           echo "Signing main executable..."
-          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app/Contents/MacOS/gpt4all
+          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/GPT4Everyone.app/Contents/MacOS/GPT4Everyone
           
           # 5. Sign the app bundle itself
           echo "Signing app bundle..."
-          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/gpt4all.app
+          codesign --force --options runtime --timestamp --sign "${{ secrets.MAC_SIGNING_IDENTITY }}" gpt4all-chat/build/bin/GPT4Everyone.app
 
       - name: Package DMG
         run: |
           # Create a DMG manually using hdiutil
-          hdiutil create -volname "GPT4Everyone" -srcfolder gpt4all-chat/build/bin/gpt4all.app -ov -format UDZO gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
+          hdiutil create -volname "GPT4Everyone" -srcfolder gpt4all-chat/build/bin/GPT4Everyone.app -ov -format UDZO gpt4all-chat/build/gpt4everyone-installer-darwin.dmg
 
       - name: Sign DMG
         run: |
@@ -160,7 +160,11 @@ jobs:
       - name: Install Python dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install setuptools wheel
+          python3 -m pip install setuptools wheel aqtinstall
+
+      - name: List available Qt modules
+        run: |
+          python3 -m aqt list-qt linux desktop --modules 6.8.0 gcc_64 || echo "Failed to list modules, continuing..."
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3

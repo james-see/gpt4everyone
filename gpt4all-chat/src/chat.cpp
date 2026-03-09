@@ -233,7 +233,9 @@ void Chat::promptProcessing()
 
 void Chat::generatingQuestions()
 {
+    m_responseInProgress = false;
     m_responseState = Chat::GeneratingQuestions;
+    emit responseInProgressChanged();
     emit responseStateChanged();
 }
 

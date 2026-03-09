@@ -68,6 +68,7 @@ bool EmbeddingLLMWorker::loadModel()
 
     m_nomicAPIKey.clear();
     m_model = nullptr;
+    m_lastLoadError.clear();
 
     // TODO(jared): react to setting changes without restarting
 
@@ -83,15 +84,20 @@ bool EmbeddingLLMWorker::loadModel()
 #endif
 
     QString filePath = embPathFmt.arg(QCoreApplication::applicationDirPath(), LOCAL_EMBEDDING_MODEL);
-    if (!QFileInfo::exists(filePath)) {
-        qWarning() << "embllm WARNING: Local embedding model not found";
+    QFileInfo fi(filePath);
+    if (!fi.exists()) {
+        m_lastLoadError = QObject::tr("Local embedding model not found at: %1").arg(filePath);
+        qWarning() << "embllm WARNING:" << m_lastLoadError;
         return false;
     }
+    filePath = fi.canonicalFilePath();
 
     QString requestedDevice = MySettings::globalInstance()->localDocsEmbedDevice();
     std::string backend = "auto";
-#ifdef Q_OS_MAC
-    if (requestedDevice == "Auto" || requestedDevice == "CPU")
+#if defined(Q_OS_MAC) || defined(Q_OS_DARWIN)
+    // On macOS, only force CPU when explicitly selected. For "Auto", pass "auto" so
+    // the backend tries Metal first (DEFAULT_BACKENDS is metal,cpu on Apple Silicon).
+    if (requestedDevice == "CPU")
         backend = "cpu";
 #else
     if (requestedDevice.startsWith("CUDA: "))
@@ -101,7 +107,8 @@ bool EmbeddingLLMWorker::loadModel()
     try {
         m_model = LLModel::Implementation::construct(filePath.toStdString(), backend, n_ctx);
     } catch (const std::exception &e) {
-        qWarning() << "embllm WARNING: Could not load embedding model:" << e.what();
+        m_lastLoadError = QObject::tr("Could not load embedding model: %1").arg(QString::fromStdString(e.what()));
+        qWarning() << "embllm WARNING:" << m_lastLoadError;
         return false;
     }
 
@@ -147,7 +154,8 @@ bool EmbeddingLLMWorker::loadModel()
             try {
                 m_model = LLModel::Implementation::construct(filePath.toStdString(), "auto", n_ctx);
             } catch (const std::exception &e) {
-                qWarning() << "embllm WARNING: Could not load embedding model:" << e.what();
+                m_lastLoadError = QObject::tr("Could not load embedding model: %1").arg(QString::fromStdString(e.what()));
+                qWarning() << "embllm WARNING:" << m_lastLoadError;
                 return false;
             }
         }
@@ -156,14 +164,16 @@ bool EmbeddingLLMWorker::loadModel()
     }
 
     if (!success) {
-        qWarning() << "embllm WARNING: Could not load embedding model";
+        m_lastLoadError = QObject::tr("Could not load embedding model (loadModel failed). Path: %1").arg(filePath);
+        qWarning() << "embllm WARNING:" << m_lastLoadError;
         delete m_model;
         m_model = nullptr;
         return false;
     }
 
     if (!m_model->supportsEmbedding()) {
-        qWarning() << "embllm WARNING: Model type does not support embeddings";
+        m_lastLoadError = QObject::tr("Model type does not support embeddings. Path: %1").arg(filePath);
+        qWarning() << "embllm WARNING:" << m_lastLoadError;
         delete m_model;
         m_model = nullptr;
         return false;
@@ -252,14 +262,23 @@ void EmbeddingLLMWorker::docEmbeddingsRequested(const QVector<EmbeddingChunk> &c
         return;
 
     bool isNomic;
+    bool loadFailed = false;
     {
         QMutexLocker locker(&m_mutex);
         if (!hasModel() && !loadModel()) {
             qWarning() << "WARNING: Could not load model for embeddings";
-            return;
+            loadFailed = true;
+        } else {
+            isNomic = this->isNomic();
         }
+    }
 
-        isNomic = this->isNomic();
+    if (loadFailed) {
+        QString message = m_lastLoadError.isEmpty()
+            ? QObject::tr("Could not load embedding model. Check that the embedding model is installed and LocalDocs settings (e.g. Embeddings Device).")
+            : m_lastLoadError;
+        emit errorGenerated(chunks, message);
+        return;
     }
 
     if (!isNomic) {
@@ -287,6 +306,7 @@ void EmbeddingLLMWorker::docEmbeddingsRequested(const QVector<EmbeddingChunk> &c
                 m_model->embed(batchTexts, result.data() + j * m_model->embeddingSize(), /*isRetrieval*/ false);
             } catch (const std::exception &e) {
                 qWarning() << "WARNING: LLModel::embed failed:" << e.what();
+                emit errorGenerated(chunks, QObject::tr("Embedding failed: %1").arg(QString::fromStdString(e.what())));
                 return;
             }
         }

@@ -1670,13 +1670,35 @@ void Database::handleErrorGenerated(const QVector<EmbeddingChunk> &chunks, const
      * on the embedding model, but this sets the error on all collections for a given
      * folder */
 
-    QSet<int> folder_ids;
-    for (const auto &c: chunks) { folder_ids << c.folder_id; }
+    QHash<int, int> chunksPerFolder;
+    for (const auto &c : chunks)
+        chunksPerFolder[c.folder_id] = chunksPerFolder.value(c.folder_id, 0) + 1;
 
-    for (int fid: folder_ids) {
-        if (!m_collectionMap.contains(fid)) continue;
+    for (auto it = chunksPerFolder.constBegin(); it != chunksPerFolder.constEnd(); ++it) {
+        const int fid = it.key();
+        const int nFailed = it.value();
+        if (!m_collectionMap.contains(fid))
+            continue;
         CollectionItem item = guiCollectionItem(fid);
         item.error = error;
+
+        const size_t nFailedSize = size_t(nFailed);
+        if (item.currentEmbeddingsToIndex >= nFailedSize) {
+            item.currentEmbeddingsToIndex -= nFailedSize;
+        } else {
+            qWarning() << "Database ERROR: underflow in current embeddings to index statistics (error path)";
+            item.currentEmbeddingsToIndex = 0;
+        }
+        if (item.totalEmbeddingsToIndex >= nFailedSize) {
+            item.totalEmbeddingsToIndex -= nFailedSize;
+        } else {
+            qWarning() << "Database ERROR: underflow in total embeddings to index statistics (error path)";
+            item.totalEmbeddingsToIndex = 0;
+        }
+
+        if (!item.indexing && item.currentEmbeddingsToIndex == 0)
+            setLastUpdateTime(item);
+
         updateGuiForCollectionItem(item);
     }
 }

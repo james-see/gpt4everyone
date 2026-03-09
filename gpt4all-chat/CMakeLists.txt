@@ -403,10 +403,10 @@ endmacro()
 if (APPLE)
     set_target_properties(chat PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER gpt4all
+        MACOSX_BUNDLE_GUI_IDENTIFIER io.github.james-see.gpt4everyone
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-        OUTPUT_NAME gpt4all
+        OUTPUT_NAME GPT4Everyone
     )
     # add_dependencies(chat ggml-metal)
 endif()
@@ -468,7 +468,7 @@ endif()
 # -- install --
 
 if (APPLE)
-    set(GPT4ALL_LIB_DEST bin/gpt4all.app/Contents/Frameworks)
+    set(GPT4ALL_LIB_DEST bin/GPT4Everyone.app/Contents/Frameworks)
 else()
     set(GPT4ALL_LIB_DEST lib)
 endif()

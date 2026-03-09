@@ -72,6 +72,7 @@ private:
     std::atomic<bool> m_stopGenerating;
     QThread m_workerThread;
     QMutex m_mutex; // guards m_model and m_nomicAPIKey
+    QString m_lastLoadError; // reason when loadModel() fails
 };
 
 class EmbeddingLLM : public QObject

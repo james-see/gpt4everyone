@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] - 2026-03-08 (GPT4Everyone)
+
+### Added
+- Rebranded app as **GPT4Everyone** (GPT4Everyone.app on macOS; gpt4everyone installers on all platforms).
+- GitHub Actions release workflow: tag `v*` builds signed/notarized macOS DMG, Windows installer, and Linux installer; creates GitHub Release with artifacts.
+- README with Ollama setup: base URL, optional free API key, and example for local models.
+
+### Changed
+- macOS bundle identifier: `io.github.james-see.gpt4everyone`.
+- Installer and package names use `gpt4everyone` (e.g. `gpt4everyone-installer-darwin.dmg`).
+
+### Fixed
+- LocalDocs: embedding errors now surface correctly and progress no longer stuck at 0% when embedding model fails to load.
+- Suggested follow-ups: spinner stops when follow-up generation starts instead of after it finishes.
+- macOS: embedding model can use Metal (auto) when available instead of forcing CPU.
+
 ## [3.10.0] - 2025-02-24
 
 ### Added
@@ -312,6 +328,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fix several Vulkan resource management issues ([#2694](https://github.com/nomic-ai/gpt4all/pull/2694))
 - Fix crash/hang when some models stop generating, by showing special tokens ([#2701](https://github.com/nomic-ai/gpt4all/pull/2701))
 
+[1.0.0]: https://github.com/james-see/gpt4everyone/releases/tag/v1.0.0
 [3.10.0]: https://github.com/nomic-ai/gpt4all/compare/v3.9.0...v3.10.0
 [3.9.0]: https://github.com/nomic-ai/gpt4all/compare/v3.8.0...v3.9.0
 [3.8.0]: https://github.com/nomic-ai/gpt4all/compare/v3.7.0...v3.8.0
