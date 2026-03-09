@@ -194,7 +194,8 @@ jobs:
           cmake .. -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DGPT4ALL_TEST=OFF \
-            -DLLMODEL_CUDA=OFF
+            -DLLMODEL_CUDA=OFF \
+            -DLLMODEL_KOMPUTE=OFF
 
       - name: Build
         run: |
@@ -366,28 +367,9 @@ jobs:
           }
 
       - name: Install Qt Installer Framework
-        run: |
-          # Check if Qt IFW is available from Qt installation
-          $QtIFWPaths = @(
-            "C:\Qt\Tools\QtInstallerFramework\4.6",
-            "$env:ProgramFiles\Qt\Tools\QtInstallerFramework\4.6",
-            "$env:LOCALAPPDATA\Qt\Tools\QtInstallerFramework\4.6"
-          )
-          
-          $QtIFWPath = $null
-          foreach ($path in $QtIFWPaths) {
-            if (Test-Path $path) {
-              $QtIFWPath = $path
-              break
-            }
-          }
-          
-          if ($QtIFWPath) {
-            Write-Host "Qt IFW found at $QtIFWPath"
-            $env:PATH = "$QtIFWPath\bin;$env:PATH"
-          } else {
-            Write-Host "Qt IFW not found at default locations, CPack will try to use bundled tools"
-          }
+        uses: jmarrec/setup-qtifw@v1
+        with:
+          qtifw-version: '4.6'
 
       - name: Package Windows Installer
         run: |
