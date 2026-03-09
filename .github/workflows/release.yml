@@ -318,7 +318,8 @@ jobs:
           cmake .. -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DGPT4ALL_TEST=OFF `
-            -DLLMODEL_CUDA=OFF
+            -DLLMODEL_CUDA=OFF `
+            -DLLMODEL_KOMPUTE=OFF
 
       - name: Build
         run: |
