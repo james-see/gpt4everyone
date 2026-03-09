@@ -164,7 +164,7 @@ jobs:
 
       - name: List available Qt modules
         run: |
-          python3 -m aqt list-qt linux desktop --modules 6.8.0 gcc_64 || echo "Failed to list modules, continuing..."
+          python3 -m aqt list-qt linux desktop --modules 6.8.0 linux_gcc_64 || echo "Failed to list modules, continuing..."
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
@@ -172,7 +172,7 @@ jobs:
           version: '6.8.0'
           host: 'linux'
           target: 'desktop'
-          arch: 'gcc_64'
+          arch: 'linux_gcc_64'
           modules: 'qt5compat qthttpserver qtpdf qtshadertools qtwebsockets'
           setup-python: false
 
@@ -191,7 +191,8 @@ jobs:
           cd build
           cmake .. -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DGPT4ALL_TEST=OFF
+            -DGPT4ALL_TEST=OFF \
+            -DLLMODEL_CUDA=OFF
 
       - name: Build
         run: |
@@ -285,6 +286,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
@@ -308,7 +314,8 @@ jobs:
           cd build
           cmake .. -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DGPT4ALL_TEST=OFF
+            -DGPT4ALL_TEST=OFF `
+            -DLLMODEL_CUDA=OFF
 
       - name: Build
         run: |
